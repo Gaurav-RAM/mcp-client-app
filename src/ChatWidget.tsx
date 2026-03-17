@@ -549,6 +549,8 @@ const CSS = `
   --cw-border: #e8e7e2;
   --cw-border2:#f0efe9;
   --cw-accent: #111;
+  --cw-accent2:#764ba2;
+  --cw-accent3:#667eea;
   --cw-green:  #16a34a;
   --cw-red:    #dc2626;
   --cw-r:      16px;
@@ -556,25 +558,26 @@ const CSS = `
   --cw-font:   'DM Sans', system-ui, sans-serif;
   --cw-mono:   'DM Mono', monospace;
   --cw-shadow: 0 24px 64px rgba(0,0,0,.17), 0 6px 20px rgba(0,0,0,.1), 0 1px 4px rgba(0,0,0,.06);
-  --cw-fab-sh: 0 4px 20px rgba(0,0,0,.28), 0 1px 6px rgba(0,0,0,.14);
+  --cw-fab-sh: 0 14px 38px rgba(17, 24, 39, .28), 0 6px 16px rgba(17, 24, 39, .18);
 }
 
 /* ── FAB ── */
 .cw-fab {
   position:fixed; bottom:28px; right:28px; z-index:9999;
   width:60px; height:60px; border-radius:50%;
-  background:var(--cw-accent); border:none; cursor:pointer;
+  background:linear-gradient(135deg, var(--cw-accent3), var(--cw-accent2));
+  border:none; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   box-shadow:var(--cw-fab-sh); outline:none;
   transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
 }
-.cw-fab:hover  { transform:scale(1.1); box-shadow:0 6px 28px rgba(0,0,0,.34); }
+.cw-fab:hover  { transform:scale(1.07); box-shadow:0 18px 52px rgba(17,24,39,.32), 0 6px 18px rgba(17,24,39,.18); }
 .cw-fab:active { transform:scale(.94); }
-.cw-fab:focus-visible { box-shadow:var(--cw-fab-sh),0 0 0 3px rgba(255,255,255,.5),0 0 0 5px #111; }
+.cw-fab:focus-visible { box-shadow:var(--cw-fab-sh),0 0 0 3px rgba(255,255,255,.55),0 0 0 6px rgba(118,75,162,.65); }
 
 .cw-fab-ripple {
   position:absolute; width:60px; height:60px; border-radius:50%;
-  border:2px solid rgba(255,255,255,.3);
+  border:2px solid rgba(255,255,255,.35);
   animation:cw-ripple 2s ease-out infinite; pointer-events:none;
 }
 @keyframes cw-ripple {
@@ -603,20 +606,28 @@ const CSS = `
 /* ── Greeting bubble ── */
 .cw-greeting {
   position:fixed; bottom:104px; right:28px; z-index:9998;
-  background:var(--cw-paper); border:1px solid var(--cw-border);
-  border-radius:18px; padding:13px 14px;
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:20px; padding:12px 12px;
   display:flex; align-items:center; gap:11px;
-  box-shadow:0 8px 32px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.07);
-  cursor:pointer; max-width:272px;
+  box-shadow:0 18px 55px rgba(17,24,39,.22),0 6px 16px rgba(17,24,39,.12);
+  cursor:pointer; max-width:320px;
   font-family:var(--cw-font);
   animation:cw-popUp .4s cubic-bezier(.34,1.56,.64,1);
-  transition:box-shadow .2s, transform .2s;
+  transition:box-shadow .2s, transform .2s, background .2s, border-color .2s;
+  backdrop-filter: blur(10px);
 }
-.cw-greeting:hover { box-shadow:0 12px 40px rgba(0,0,0,.16); transform:translateY(-2px); }
+.cw-greeting:hover {
+  background:rgba(255,255,255,.97);
+  border-color:rgba(255,255,255,.75);
+  box-shadow:0 22px 70px rgba(17,24,39,.26),0 8px 20px rgba(17,24,39,.14);
+  transform:translateY(-2px);
+}
 .cw-greeting::after {
   content:''; position:absolute; bottom:-7px; right:24px;
-  width:13px; height:13px; background:var(--cw-paper);
-  border-right:1px solid var(--cw-border); border-bottom:1px solid var(--cw-border);
+  width:13px; height:13px; background:rgba(255,255,255,.92);
+  border-right:1px solid rgba(255,255,255,.55);
+  border-bottom:1px solid rgba(255,255,255,.55);
   transform:rotate(45deg);
 }
 @keyframes cw-popUp {
@@ -624,32 +635,34 @@ const CSS = `
   to   { opacity:1; transform:translateY(0)    scale(1);   }
 }
 .cw-greeting-avatar {
-  width:40px; height:40px; border-radius:50%;
-  background:var(--cw-accent); color:#fff;
+  width:40px; height:40px; border-radius:14px;
+  background:linear-gradient(135deg, var(--cw-accent3), var(--cw-accent2));
+  color:#fff;
   display:flex; align-items:center; justify-content:center;
   font-size:16px; flex-shrink:0;
-  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  box-shadow:0 10px 26px rgba(17,24,39,.22);
 }
 .cw-greeting-body { flex:1; min-width:0; }
 .cw-greeting-name {
-  font-size:10.5px; font-weight:600; text-transform:uppercase;
-  letter-spacing:.05em; color:var(--cw-ink3); margin-bottom:3px;
+  font-size:10px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.08em; color:rgba(17,24,39,.45); margin-bottom:2px;
 }
-.cw-greeting-text { font-size:13.5px; font-weight:500; color:var(--cw-ink); line-height:1.35; }
+.cw-greeting-text { font-size:14px; font-weight:650; color:#111827; line-height:1.25; }
 .cw-greeting-x {
-  width:22px; height:22px; border-radius:50%; border:none; background:none;
+  width:26px; height:26px; border-radius:10px; border:none; background:none;
   cursor:pointer; display:flex; align-items:center; justify-content:center;
-  color:var(--cw-ink3); font-size:11px; flex-shrink:0;
+  color:rgba(17,24,39,.45); font-size:12px; flex-shrink:0;
   transition:background .12s, color .12s;
 }
-.cw-greeting-x:hover { background:var(--cw-paper2); color:var(--cw-ink); }
+.cw-greeting-x:hover { background:rgba(102,126,234,.10); color:#111827; }
 
 /* ── Panel ── */
 .cw-panel {
   position:fixed; bottom:104px; right:28px; z-index:9998;
   width:400px; height:600px; max-height:calc(100dvh - 120px);
   background:var(--cw-paper); border:1px solid var(--cw-border);
-  border-radius:24px; box-shadow:var(--cw-shadow);
+  border-radius:26px;
+  box-shadow:0 26px 80px rgba(17,24,39,.22), 0 10px 26px rgba(17,24,39,.12);
   display:flex; flex-direction:column; overflow:hidden;
   font-family:var(--cw-font); color:var(--cw-ink);
   transform-origin:bottom right;
@@ -667,11 +680,12 @@ const CSS = `
 .cw-header-brand { display:flex; align-items:center; gap:10px; }
 .cw-header-avatar {
   width:40px; height:40px; border-radius:13px;
-  background:var(--cw-accent); color:#fff;
+  background:linear-gradient(135deg, var(--cw-accent3), var(--cw-accent2));
+  color:#fff;
   display:flex; align-items:center; justify-content:center;
   font-size:17px; flex-shrink:0;
 }
-.cw-header-name { font-size:14px; font-weight:600; color:var(--cw-ink); letter-spacing:-.01em; }
+.cw-header-name { font-size:14px; font-weight:750; color:var(--cw-ink); letter-spacing:-.01em; }
 .cw-header-sub {
   font-size:11.5px; color:var(--cw-ink3); margin-top:2px;
   display:flex; align-items:center; gap:5px;

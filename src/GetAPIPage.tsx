@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+import { getServerUrl } from "./serverUrl";
+
+const SERVER_URL = getServerUrl();
 const ENDPOINTS = [
   {
     id: "tools",
@@ -41,6 +43,15 @@ export function GetAPIPage() {
   const [copied, setCopied] = useState(false);
   const [fetchingAll, setFetchingAll] = useState(false);
 
+  const readBodySafe = async (res: Response) => {
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      return await res.json().catch(() => null);
+    }
+    const text = await res.text().catch(() => "");
+    return text ? { message: text.slice(0, 2000) } : null;
+  };
+
   const callEndpoint = async (ep: (typeof ENDPOINTS)[number]) => {
     setResults((prev) => ({
       ...prev,
@@ -58,7 +69,15 @@ export function GetAPIPage() {
     const start = Date.now();
     try {
       const res = await fetch(ep.url);
-      const data = await res.json();
+      const data = await readBodySafe(res);
+      if (!res.ok) {
+        const msg =
+          (data as any)?.error ||
+          (data as any)?.message ||
+          res.statusText ||
+          `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
       setResults((prev) => ({
         ...prev,
         [ep.id]: {
@@ -81,7 +100,9 @@ export function GetAPIPage() {
           status: 0,
           time: Date.now() - start,
           loading: false,
-          error: "Failed to fetch — is the server running?",
+          error:
+            err?.message ||
+            "Failed to fetch — check VITE_SERVER_URL or your server/CORS settings.",
         },
       }));
     }

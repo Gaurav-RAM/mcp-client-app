@@ -13,7 +13,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─── Config — edit these ─────────────────────────────────────────────────────
-const SERVER_URL   = import.meta.env.VITE_SERVER_URL   || "http://localhost:3001";
+import { getServerUrl } from "./serverUrl";
+
+const SERVER_URL   = getServerUrl();
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
 const GROQ_API     = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL   = "llama-3.3-70b-versatile";

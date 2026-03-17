@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { addToHistory } from "./HistoryPage";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+import { getServerUrl } from "./serverUrl";
+
+const SERVER_URL = getServerUrl();
 
 type Tool = {
   name: string;

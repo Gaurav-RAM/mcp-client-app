@@ -1,8 +1,99 @@
-.mcp-client {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+/* ── App shell ───────────────────────────────────────────────────────────── */
+.app-shell {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   padding: 20px;
+}
+
+.app-header {
+  color: white;
+  padding: 26px 0 14px;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+}
+
+.app-title {
+  margin: 0 0 4px 0;
+  font-size: 2.15em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.app-sub {
+  margin: 0;
+  opacity: 0.92;
+  font-size: 0.98em;
+}
+
+.app-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+}
+
+.app-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 18px;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+}
+
+.app-tab {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.15s ease, transform 0.15s ease;
+  font-family: inherit;
+}
+
+.app-tab:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.app-tab:active {
+  transform: translateY(1px);
+}
+
+.app-tab.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2b2b3a;
+}
+
+.app-main {
+  padding-bottom: 60px;
+}
+
+.mcp-client-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .header {
@@ -27,6 +118,19 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-sub {
+  font-size: 0.9em;
+  color: #666;
 }
 
 .alert {

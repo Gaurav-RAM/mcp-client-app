@@ -111,105 +111,94 @@ export function MCPClient() {
   };
 
   return (
-    <div className="mcp-client">
-      <div className="container">
-        <header className="header">
-          <h1>MCP React Client</h1>
-          <p>Connected to {SERVER_URL}</p>
-        </header>
+    <div className="mcp-client-inner">
+      {error && (
+        <div className="alert alert-error">
+          <span>{error}</span>
+          <div>
+            <button className="retry-btn" type="button" onClick={loadTools}>
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
-        {error && (
-          <div className="alert alert-error">
-            <span>{error}</span>
-            <div>
-              <button className="retry-btn" type="button" onClick={loadTools}>
-                Retry
+      <section className="tools-section">
+        <div className="section-head">
+          <h2>Available Tools</h2>
+          <div className="section-sub">
+            Server: <span className="app-mono">{SERVER_URL}</span>
+          </div>
+        </div>
+        {loadingTools && <p>Loading tools…</p>}
+        {!loadingTools && tools.length === 0 && (
+          <p>No tools available. Is the server running?</p>
+        )}
+        {tools.length > 0 && (
+          <div className="tools-grid">
+            {tools.map((tool) => (
+              <button
+                key={tool.name}
+                type="button"
+                className={
+                  "tool-card" + (selectedTool?.name === tool.name ? " active" : "")
+                }
+                onClick={() => {
+                  setSelectedTool(tool);
+                  setParams({});
+                  setResult(null);
+                }}
+              >
+                <h3>{tool.name}</h3>
+                <p>{tool.description}</p>
               </button>
-            </div>
+            ))}
           </div>
         )}
+      </section>
 
-        <section className="tools-section">
-          <h2>Available Tools</h2>
-          {loadingTools && <p>Loading tools…</p>}
-          {!loadingTools && tools.length === 0 && (
-            <p>No tools available. Is the server running?</p>
-          )}
-          {tools.length > 0 && (
-            <div className="tools-grid">
-              {tools.map((tool) => (
-                <button
-                  key={tool.name}
-                  type="button"
-                  className={
-                    "tool-card" +
-                    (selectedTool?.name === tool.name ? " active" : "")
-                  }
-                  onClick={() => {
-                    setSelectedTool(tool);
-                    setParams({});
-                    setResult(null);
-                  }}
-                >
-                  <h3>{tool.name}</h3>
-                  <p>{tool.description}</p>
-                </button>
-              ))}
+      {selectedTool && (
+        <section className="tool-form-section">
+          <h2>Call: {selectedTool.name}</h2>
+          <p className="description">{selectedTool.description}</p>
+
+          <form
+            className="tool-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleInvoke();
+            }}
+          >
+            {Object.keys(selectedTool.parameters ?? {}).map((name) => (
+              <div className="form-group" key={name}>
+                <label htmlFor={name}>
+                  {name}
+                  <span className="required">*</span>
+                </label>
+                <input
+                  id={name}
+                  className="param-input"
+                  value={params[name] ?? ""}
+                  onChange={(e) => handleParamChange(name, e.target.value)}
+                  placeholder={`Enter ${selectedTool.parameters[name]}`}
+                />
+                <div className="help-text">Type: {selectedTool.parameters[name]}</div>
+              </div>
+            ))}
+
+            <button className="call-button" type="submit" disabled={loadingInvoke}>
+              {loadingInvoke ? "Calling tool…" : "Call tool"}
+            </button>
+          </form>
+
+          {result !== null && (
+            <div className="result-section">
+              <h3>Result</h3>
+              <pre className="result-box">{JSON.stringify(result, null, 2)}</pre>
             </div>
           )}
         </section>
-
-        {selectedTool && (
-          <section className="tool-form-section">
-            <h2>Call: {selectedTool.name}</h2>
-            <p className="description">{selectedTool.description}</p>
-
-            <form
-              className="tool-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleInvoke();
-              }}
-            >
-              {Object.keys(selectedTool.parameters ?? {}).map((name) => (
-                <div className="form-group" key={name}>
-                  <label htmlFor={name}>
-                    {name}
-                    <span className="required">*</span>
-                  </label>
-                  <input
-                    id={name}
-                    className="param-input"
-                    value={params[name] ?? ""}
-                    onChange={(e) => handleParamChange(name, e.target.value)}
-                    placeholder={`Enter ${selectedTool.parameters[name]}`}
-                  />
-                  <div className="help-text">
-                    Type: {selectedTool.parameters[name]}
-                  </div>
-                </div>
-              ))}
-
-              <button
-                className="call-button"
-                type="submit"
-                disabled={loadingInvoke}
-              >
-                {loadingInvoke ? "Calling tool…" : "Call tool"}
-              </button>
-            </form>
-
-            {result !== null && (
-              <div className="result-section">
-                <h3>Result</h3>
-                <pre className="result-box">
-                  {JSON.stringify(result, null, 2)}
-                </pre>
-              </div>
-            )}
-          </section>
-        )}
-      </div>
+      )}
     </div>
   );
 }

@@ -22,6 +22,7 @@ const GROQ_MODEL   = "llama-3.3-70b-versatile";
 
 const AUTO_OPEN_DELAY   = 2000; // ms before popup auto-opens on page load
 const MAX_TOOL_ITERS    = 10;   // safety cap on tool call loops
+const DEFAULT_VIDEO_URL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Role = "user" | "assistant";
@@ -232,8 +233,15 @@ export function ChatWidget() {
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
 
+  // video state (in-chat mini player)
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(DEFAULT_VIDEO_URL);
+  const [videoSrc, setVideoSrc] = useState(DEFAULT_VIDEO_URL);
+  const [videoError, setVideoError] = useState<string | null>(null);
+
   const bottomRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLTextAreaElement>(null);
+  const videoRef   = useRef<HTMLVideoElement>(null);
   const abortRef   = useRef<AbortController | null>(null);
 
   // Load tools
@@ -266,6 +274,21 @@ export function ChatWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Autoplay (muted) when video source changes
+  useEffect(() => {
+    if (!videoOpen) return;
+    const v = videoRef.current;
+    if (!v) return;
+    setVideoError(null);
+    v.muted = true;
+    const p = v.play?.();
+    if (p && typeof (p as any).catch === "function") {
+      (p as any).catch(() => {
+        // Autoplay may be blocked; user can press play.
+      });
+    }
+  }, [videoSrc, videoOpen]);
 
   // Escape to close
   useEffect(() => {
@@ -383,6 +406,50 @@ export function ChatWidget() {
 
   const isEmpty = messages.length === 0;
 
+  const loadVideo = () => {
+    const next = videoUrl.trim();
+    if (!next) return;
+    setVideoError(null);
+    setVideoSrc(next);
+    setVideoOpen(true);
+  };
+
+  const supportsPiP =
+    typeof document !== "undefined" &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    !!(document as any).pictureInPictureEnabled &&
+    typeof (videoRef.current as any)?.requestPictureInPicture === "function";
+
+  const requestPiP = async () => {
+    const v: any = videoRef.current;
+    if (!v) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await (document as any).exitPictureInPicture?.();
+      } else {
+        await v.requestPictureInPicture();
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const requestFullscreen = async () => {
+    const v: any = videoRef.current;
+    if (!v) return;
+    try {
+      const el: any = v;
+      const req =
+        el.requestFullscreen ||
+        el.webkitRequestFullscreen ||
+        el.mozRequestFullScreen ||
+        el.msRequestFullscreen;
+      if (typeof req === "function") await req.call(el);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <>
       <style>{CSS}</style>
@@ -454,6 +521,74 @@ export function ChatWidget() {
             <button className="cw-welcome-x" onClick={() => setGreetingDismissed(true)}>✕</button>
           </div>
         )}
+
+        {/* Video player (collapsible) */}
+        <div className={`cw-video ${videoOpen ? "cw-video-open" : "cw-video-closed"}`}>
+          <button
+            className="cw-video-head"
+            onClick={() => setVideoOpen((v) => !v)}
+            type="button"
+            aria-expanded={videoOpen}
+          >
+            <div className="cw-video-head-left">
+              <span className="cw-video-dot" />
+              <span className="cw-video-title">Video</span>
+              <span className="cw-video-sub">Play from URL</span>
+            </div>
+            <span className={`cw-video-caret ${videoOpen ? "open" : ""}`}>›</span>
+          </button>
+
+          {videoOpen && (
+            <div className="cw-video-body">
+              <div className="cw-video-row">
+                <input
+                  className="cw-video-input"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="Paste a direct .mp4 URL"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      loadVideo();
+                    }
+                  }}
+                />
+                <button className="cw-video-load" type="button" onClick={loadVideo}>
+                  Load
+                </button>
+              </div>
+
+              <div className="cw-video-player">
+                <video
+                  ref={videoRef}
+                  className="cw-video-el"
+                  src={videoSrc}
+                  controls
+                  playsInline
+                  muted
+                  onError={() =>
+                    setVideoError("Video failed to load. Use a direct .mp4 URL with CORS enabled.")
+                  }
+                />
+                <div className="cw-video-actions">
+                  <button className="cw-video-action" type="button" onClick={requestFullscreen} title="Fullscreen">
+                    Fullscreen
+                  </button>
+                  <button
+                    className="cw-video-action"
+                    type="button"
+                    onClick={requestPiP}
+                    disabled={!supportsPiP}
+                    title={supportsPiP ? "Picture-in-Picture" : "PiP not supported"}
+                  >
+                    PiP
+                  </button>
+                </div>
+                {videoError && <div className="cw-video-err">{videoError}</div>}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Messages */}
         <main className="cw-messages" role="log" aria-live="polite">
@@ -728,6 +863,98 @@ const CSS = `
   transition:background .12s, color .12s;
 }
 .cw-welcome-x:hover { background:#dcfce7; color:#15803d; }
+
+/* ── Video (collapsible) ── */
+.cw-video { border-bottom:1px solid var(--cw-border); }
+.cw-video-head {
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 14px;
+  background:linear-gradient(135deg, rgba(102,126,234,.10), rgba(118,75,162,.08));
+  border:none;
+  cursor:pointer;
+  font-family:var(--cw-font);
+}
+.cw-video-head-left { display:flex; align-items:baseline; gap:8px; min-width:0; }
+.cw-video-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:linear-gradient(135deg, var(--cw-accent3), var(--cw-accent2));
+  box-shadow:0 0 0 3px rgba(102,126,234,.10);
+  flex-shrink:0;
+}
+.cw-video-title { font-weight:800; font-size:12px; letter-spacing:.02em; color:#111827; }
+.cw-video-sub { font-size:11.5px; color:rgba(17,24,39,.55); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cw-video-caret { font-size:16px; color:rgba(17,24,39,.45); transition:transform .18s ease; }
+.cw-video-caret.open { transform:rotate(90deg); }
+
+.cw-video-body { padding:12px 14px 14px; background:var(--cw-paper); }
+.cw-video-row { display:flex; gap:8px; align-items:center; }
+.cw-video-input {
+  flex:1;
+  min-width:0;
+  border:1px solid var(--cw-border);
+  border-radius:12px;
+  padding:9px 11px;
+  font-family:var(--cw-font);
+  font-size:12.5px;
+  outline:none;
+  background:var(--cw-paper);
+  transition:border-color .15s, box-shadow .15s;
+}
+.cw-video-input:focus {
+  border-color:rgba(102,126,234,.55);
+  box-shadow:0 0 0 3px rgba(102,126,234,.12);
+}
+.cw-video-load {
+  border:none;
+  border-radius:12px;
+  padding:9px 12px;
+  font-weight:800;
+  font-size:12px;
+  cursor:pointer;
+  color:#fff;
+  background:linear-gradient(135deg, var(--cw-accent3), var(--cw-accent2));
+  box-shadow:0 10px 22px rgba(17,24,39,.14);
+}
+.cw-video-load:active { transform:translateY(1px); }
+
+.cw-video-player { margin-top:10px; }
+.cw-video-el {
+  width:100%;
+  max-height:200px;
+  border-radius:16px;
+  background:#0b0b12;
+  border:1px solid rgba(17,24,39,.08);
+  box-shadow:0 12px 34px rgba(17,24,39,.10);
+}
+.cw-video-actions { display:flex; gap:8px; margin-top:10px; }
+.cw-video-action {
+  border:1px solid rgba(102,126,234,.32);
+  background:rgba(102,126,234,.10);
+  color:#111827;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  font-family:var(--cw-font);
+  transition:background .15s, border-color .15s, opacity .15s;
+}
+.cw-video-action:hover:not(:disabled) { background:rgba(102,126,234,.14); border-color:rgba(102,126,234,.45); }
+.cw-video-action:disabled { opacity:.45; cursor:not-allowed; }
+.cw-video-err {
+  margin-top:10px;
+  padding:9px 10px;
+  border-radius:12px;
+  border:1px solid #fecaca;
+  background:#fff5f5;
+  color:#b91c1c;
+  font-size:12px;
+  line-height:1.35;
+}
 
 /* Messages */
 .cw-messages {

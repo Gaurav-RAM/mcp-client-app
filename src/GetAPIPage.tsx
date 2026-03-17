@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
-const SERVER_URL = "http://localhost:3001";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 const ENDPOINTS = [
   {
     id: "tools",
